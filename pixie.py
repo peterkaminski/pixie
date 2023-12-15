@@ -15,6 +15,9 @@ import os
 import requests
 from PIL import Image
 
+# Set up vision model to request. Also check `pricing_model` in compute_cost().
+VISION_MODEL = gpt-4-vision-preview
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
@@ -73,7 +76,7 @@ def analyze_image_with_gpt4(image_path, prompt, max_tokens):
     }
 
     payload = {
-        "model": "gpt-4-vision-preview",
+        "model": VISION_MODEL,
         "messages": [
             {
                 "role": "user",
@@ -122,7 +125,7 @@ def compute_cost(tokens, actual_model):
     input_tokens, output_tokens = tokens
 
     # Cost calculation
-    # https://openai.com/pricing
+    # https://openai.com/pricing - change all of pricing_model, input_cost, output_cost at the same time
     pricing_model = 'gpt-4-1106-vision-preview'
     input_cost = input_tokens / 1000 * 0.01
     output_cost = output_tokens / 1000 * 0.03
