@@ -16,7 +16,7 @@ import requests
 from PIL import Image
 
 # Set up vision model to request. Also check `pricing_model` in compute_cost().
-VISION_MODEL = gpt-4-vision-preview
+VISION_MODEL = 'gpt-4-vision-preview'
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
