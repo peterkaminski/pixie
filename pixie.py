@@ -6,19 +6,51 @@
 
 import argparse
 import base64
-import json
+from fractions import Fraction
+import io
 import logging
 import os
 
 import requests
+from PIL import Image
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
-# Function to encode the image
+# Resize and encode the image
 def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
+    # Read the image
+    with Image.open(image_path) as img:
+        # Original dimensions
+        original_width, original_height = img.size
+
+        # Calculate and reduce the aspect ratio
+        aspect_ratio = Fraction(original_width, original_height).limit_denominator()
+
+        # Calculate new dimensions preserving aspect ratio
+        max_size = 512
+        if original_width > original_height:
+            new_width = min(original_width, max_size)
+            new_height = round(new_width / aspect_ratio)
+        else:
+            new_height = min(original_height, max_size)
+            new_width = round(new_height * aspect_ratio)
+
+        # Resize image
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        # Convert to PNG
+        with io.BytesIO() as buffer:
+            img.save(buffer, format="PNG")
+            buffer.seek(0)
+            image_png = buffer.read()
+
+    # Encode to base64
+    image_base64 = base64.b64encode(image_png).decode('utf-8')
+
+    # Return base64 string, original dimensions, and aspect ratio
+    return image_base64, (original_width, original_height), (aspect_ratio.numerator, aspect_ratio.denominator)
+
 
 def analyze_image_with_gpt4(image_path, prompt):
     # Retrieving the API key from the environment variable
@@ -28,7 +60,7 @@ def analyze_image_with_gpt4(image_path, prompt):
         raise ValueError("Please set the 'OPENAI_API_KEY' environment variable")
 
     # Getting the base64 string
-    base64_image = encode_image(image_path)
+    base64_image, original_dimensions, aspect_ratio = encode_image(image_path)
 
     # Set up the prompt
     if prompt is None:
@@ -68,7 +100,7 @@ def analyze_image_with_gpt4(image_path, prompt):
         raise Exception(f"Request failed with status code {response.status_code}: {response.text}")
 
     response_json = response.json()
-    return response_json['choices'][0]['message']['content']
+    return original_dimensions, aspect_ratio, response_json['choices'][0]['message']['content']
 
 
 def main():
@@ -77,7 +109,9 @@ def main():
     parser.add_argument('-p', '--prompt', help="Prompt to give to GPT-4")
     args = parser.parse_args()
 
-    response = analyze_image_with_gpt4(args.input, args.prompt)
+    original_dimensions, aspect_ratio, response = analyze_image_with_gpt4(args.input, args.prompt)
+    print(f"Original dimensions: {original_dimensions}")
+    print(f"Aspect ratio: {aspect_ratio[0]}:{aspect_ratio[1]}")
     print(response)
 
 if __name__ == "__main__":
