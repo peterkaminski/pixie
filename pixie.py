@@ -9,6 +9,7 @@ import base64
 from fractions import Fraction
 import io
 import logging
+import math
 import os
 
 import requests
@@ -52,7 +53,7 @@ def encode_image(image_path):
     return image_base64, (original_width, original_height), (aspect_ratio.numerator, aspect_ratio.denominator)
 
 
-def analyze_image_with_gpt4(image_path, prompt):
+def analyze_image_with_gpt4(image_path, prompt, max_tokens):
     # Retrieving the API key from the environment variable
     api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -91,7 +92,7 @@ def analyze_image_with_gpt4(image_path, prompt):
                 ]
             }
         ],
-        "max_tokens": 300
+        "max_tokens": max_tokens
     }
 
     response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
@@ -100,19 +101,57 @@ def analyze_image_with_gpt4(image_path, prompt):
         raise Exception(f"Request failed with status code {response.status_code}: {response.text}")
 
     response_json = response.json()
-    return original_dimensions, aspect_ratio, response_json['choices'][0]['message']['content']
+    return \
+        response_json['model'], \
+        original_dimensions, \
+        aspect_ratio, \
+        (response_json['usage']['prompt_tokens'], response_json['usage']['completion_tokens']), \
+        response_json['choices'][0]['message']['content']
 
+def compute_cost(tokens, actual_model):
+    """
+    Compute the cost of using input and output tokens.
+
+    Args:
+    tokens (tuple): A tuple containing two integers, the first for input tokens and the second for output tokens.
+
+    Returns:
+    float: The total cost calculated based on the given rates, rounded to four decimal places.
+    """
+    # Unpacking the tuple
+    input_tokens, output_tokens = tokens
+
+    # Cost calculation
+    # https://openai.com/pricing
+    pricing_model = 'gpt-4-1106-vision-preview'
+    input_cost = input_tokens / 1000 * 0.01
+    output_cost = output_tokens / 1000 * 0.03
+    if actual_model != pricing_model:
+        logging.info(f'Note: using pricing for "{pricing_model}", but actual model is "{actual_model}".')
+
+    # Total cost
+    total_cost = input_cost + output_cost
+
+    # Rounding up to four decimal places
+    rounded_cost = math.ceil(total_cost * 10000) / 10000
+
+    return total_cost
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze an image file with GPT-4 with Vision API.")
     parser.add_argument('-i', '--input', required=True, help="Image file name")
     parser.add_argument('-p', '--prompt', help="Prompt to give to GPT-4")
+    parser.add_argument('-t', '--tokens', default=300, help="Maximum output tokens")
     args = parser.parse_args()
 
-    original_dimensions, aspect_ratio, response = analyze_image_with_gpt4(args.input, args.prompt)
-    print(f"Original dimensions: {original_dimensions}")
+    model, original_dimensions, aspect_ratio, tokens, response = analyze_image_with_gpt4(args.input, args.prompt, args.tokens)
+    print(f"Original dimensions: {original_dimensions[0]} x {original_dimensions[1]}")
     print(f"Aspect ratio: {aspect_ratio[0]}:{aspect_ratio[1]}")
-    print(response)
+    cost = compute_cost(tokens, model)
+    print(f"Tokens: {tokens[0]}+{tokens[1]} (${cost:.4f})")
+    if tokens[1] >= int(args.tokens):
+        print(f"Note: Maximum output tokens ({args.tokens}) reached - output may be truncated. Consider increasing --tokens.")
+    print(f"\n{response}")
 
 if __name__ == "__main__":
     main()
