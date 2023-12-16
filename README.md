@@ -95,6 +95,8 @@ Run the script like this:
 
 This command analyzes the image `example.jpg` with the prompt "Consider this image. Print applicable keywords and a short description." and a maximum of 500 tokens for the output.
 
+You can leave off the `-p` and `-t` arguments, and sensible defaults will be used.
+
 ## Output
 
 The script will output:
