@@ -114,6 +114,8 @@ The script will output:
 - The approximate cost is calculated using hardcoded prices retrieved on 2023-12-15 from [OpenAI Pricing](https://openai.com/pricing). Before you can rely on the approximate price calcuation, you must confirm the prices are up-to-date and the same as given on the OpenAI website.
 - This version is hard-coded to use the `low` detail setting, to maintain lower API costs for the user. A future version may enable the use of `high` detail as well. The `low` detail setting requires 
 - If the GPT-4 output is truncated due to reaching the maximum token limit, consider increasing the `--tokens` value.
+- see the [[Roadmap.md]] file for plans and ideas for future development.
+
 
 ## License
 
