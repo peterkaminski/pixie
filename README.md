@@ -1,4 +1,4 @@
-# Pixie - Image Analysis Using GPT-4 with Vision API
+# Pixie - Command-line Image Analysis Using GPT-4 with Vision API
 
 ## Overview
 
