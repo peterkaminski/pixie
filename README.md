@@ -2,7 +2,7 @@
 
 ## Overview
 
-Pixie analyzes an image using OpenAI's [GPT-4 with Vision API](https://platform.openai.com/docs/guides/vision). The script allows users to provide an image file, optionally provide a prompt to guide the analysis, and specify the maximum number of output tokens. The script then scales the image so its largest dimension is 512 pixels or less, send the image to GPT-4 for analysis, and outputs the analysis along with some basic information about the image and the approximate computational cost incurred.
+Pixie analyzes an image using OpenAI's [GPT-4 with Vision API](https://platform.openai.com/docs/guides/vision). The script allows users to provide an image file, optionally provide a prompt to guide the analysis, and specify the maximum number of output tokens. The script then scales the image so its largest dimension is 512 pixels or less, sends the image to GPT-4 for analysis, and outputs the GPT-4 analysis along with some basic information about the image and the approximate computational cost incurred.
 
 ## Features
 
