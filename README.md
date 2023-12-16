@@ -105,6 +105,21 @@ The script will output:
 - A warning note if the maximum output tokens limit was met.
 - The analysis response from GPT-4.
 
+## Processing Multiple Files
+
+Pixie can be used to process multiple files using standard shell techniques. Here are two examples for Unix or MacOS.
+
+```shell
+for i in *.png ; do /path/to/pixie.py -i "$i" > "$i.txt"; done
+```
+
+```shell
+find /path/to/images -iname '*.png' \
+-exec sh -c '/path/to/pixie.py -i "$1" > "$1.txt"' _ {} \;
+```
+
+Pixie currently outputs to STDOUT, but in the future, there will be a `--output` / `-o` flag to specify output destination, which will be preferred over the output redirection techniques above.
+
 ## Notes
 
 - The software is provided "as is", without warranty of any kind. See the LICENSE file for more details.
