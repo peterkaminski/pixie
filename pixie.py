@@ -145,13 +145,15 @@ def main():
     parser.add_argument('-i', '--input', required=True, help="Image file name")
     parser.add_argument('-p', '--prompt', help="Prompt to give to GPT-4")
     parser.add_argument('-t', '--tokens', default=300, help="Maximum output tokens")
+    parser.add_argument('-c', '--cost', action="store_true", help="Include tokens used and estimated cost in output")
     args = parser.parse_args()
 
     model, original_dimensions, aspect_ratio, tokens, response = analyze_image_with_gpt4(args.input, args.prompt, args.tokens)
     print(f"Original dimensions: {original_dimensions[0]} x {original_dimensions[1]}")
     print(f"Aspect ratio: {aspect_ratio[0]}:{aspect_ratio[1]}")
-    cost = compute_cost(tokens, model)
-    print(f"Tokens: {tokens[0]}+{tokens[1]} (${cost:.4f})")
+    if (args.cost):
+        cost = compute_cost(tokens, model)
+        print(f"Tokens: {tokens[0]}+{tokens[1]} (${cost:.4f})")
     if tokens[1] >= int(args.tokens):
         print(f"Note: Maximum output tokens ({args.tokens}) reached - output may be truncated. Consider increasing --tokens.")
     print(f"\n{response}")
