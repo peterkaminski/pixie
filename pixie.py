@@ -16,7 +16,9 @@ import requests
 from PIL import Image
 
 # Set up vision model to request. Also check `pricing_model` in compute_cost().
-VISION_MODEL = 'gpt-4-vision-preview'
+##VISION_MODEL = 'gpt-4-vision-preview'
+##VISION_MODEL = 'gpt-4o'
+VISION_MODEL = 'gpt-4o-mini'
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -126,9 +128,10 @@ def compute_cost(tokens, actual_model):
 
     # Cost calculation
     # https://openai.com/pricing - change all of pricing_model, input_cost, output_cost at the same time
-    pricing_model = 'gpt-4-1106-vision-preview'
-    input_cost = input_tokens / 1000 * 0.01
-    output_cost = output_tokens / 1000 * 0.03
+    # may need reworking for current vision pricing formula
+    pricing_model = 'gpt-4o-mini'
+    input_cost = input_tokens / 1000000 * 0.15
+    output_cost = output_tokens / 1000000 * 0.6
     if actual_model != pricing_model:
         logging.info(f'Note: using pricing for "{pricing_model}", but actual model is "{actual_model}".')
 
@@ -144,7 +147,7 @@ def main():
     parser = argparse.ArgumentParser(description="Analyze an image file with GPT-4 with Vision API.")
     parser.add_argument('-i', '--input', required=True, help="Image file name")
     parser.add_argument('-p', '--prompt', help="Prompt to give to GPT-4")
-    parser.add_argument('-t', '--tokens', default=300, help="Maximum output tokens")
+    parser.add_argument('-t', '--tokens', type=int, default=300, help="Maximum output tokens")
     parser.add_argument('-c', '--cost', action="store_true", help="Include tokens used and estimated cost in output")
     args = parser.parse_args()
 
